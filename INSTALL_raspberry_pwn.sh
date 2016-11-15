@@ -1,7 +1,7 @@
 #!/bin/bash
-# Raspberry Pwn 0.1 : A Raspberry Pi Pentesting suite by Pwnie Express
+# Raspberry Pwn 0.3 : A Raspberry Pi Pentesting suite by Pwnie Express
 # pwnieexpress.com
-# Installer Revision 6.12.2012
+# Installer Revision 11.7.2014
 
 echo ""
 
@@ -11,9 +11,9 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-# Verify Raspberry Pwn 0.1 is not already installed
-if [ "`grep -o 0.1 /etc/motd.tail`" == "0.1" ] ; then 
-        echo "[-] Raspberry Pwn 0.1 already installed. Aborting..."
+# Verify Raspberry Pwn 0.3 is not already installed
+if [ "`grep -o 0.3 /etc/motd.tail`" == "0.3" ] ; then 
+        echo "[-] Raspberry Pwn 0.3 already installed. Aborting..."
         exit 1
 fi
 
@@ -23,7 +23,7 @@ echo " | _ \ \    / / \| |_ _| __| | __\ \/ / _ \ _ \ __/ __/ __|     "
 echo " |  _/\ \/\/ /| .\` || || _|  | _| >  <|  _/   / _|\__ \__ \    "
 echo " |_|   \_/\_/ |_|\_|___|___| |___/_/\_\_| |_|_\___|___/___/     "
 echo ""
-echo "              === Raspberry Pwn Release 0.1 ===                 "
+echo "              === Raspberry Pwn Release 0.3 ===                 "
 echo "     A Raspberry Pi Pentesting suite by PwnieExpress.com        "
 echo ""
 echo "----------------------------------------------------------------"
@@ -41,14 +41,16 @@ chown -R root:root .
 
 # Update base debian packages
 echo "[+] Updating base system Debian packages..."
-echo "deb http://ftp.debian.org/debian/ squeeze main contrib non-free" > /etc/apt/sources.list
+#commenting this out... don't need it!
+#echo "deb http://ftp.debian.org/debian/ squeeze main contrib non-free" > /etc/apt/sources.list
 aptitude -y update
 aptitude -y upgrade
 echo "[+] Base system Debian packages updated."
 
 # Install baseline pentesting tools via aptitude
 echo "[+] Installing baseline pentesting tools/dependencies..."
-aptitude -y install telnet btscanner libnet-dns-perl hostapd nmap dsniff netcat nikto xprobe python-scapy wireshark tcpdump ettercap hping3 medusa macchanger nbtscan john ptunnel p0f ngrep tcpflow openvpn iodine httptunnel cryptcat sipsak yersinia smbclient sslsniff tcptraceroute pbnj netdiscover netmask udptunnel dnstracer sslscan medusa ipcalc dnswalk socat onesixtyone tinyproxy dmitry fcrackzip ssldump fping ike-scan gpsd darkstat swaks arping tcpreplay sipcrack proxychains proxytunnel siege sqlmap wapiti skipfish w3af libssl-dev libpcap-dev libpcre3 libpcre3-dev libnl-dev libncurses-dev subversion python-twisted-web python-pymssql
+aptitude -y install telnet btscanner libnet-dns-perl hostapd nmap dsniff netcat nikto xprobe python-scapy wireshark tcpdump ettercap-graphical hping3 medusa macchanger nbtscan john ptunnel p0f ngrep tcpflow openvpn iodine httptunnel cryptcat sipsak yersinia smbclient sslsniff tcptraceroute pbnj netdiscover netmask udptunnel dnstracer sslscan medusa ipcalc dnswalk socat onesixtyone tinyproxy dmitry fcrackzip ssldump fping ike-scan gpsd darkstat swaks arping tcpreplay sipcrack proxychains proxytunnel siege wapiti skipfish w3af libssl-dev libpcap-dev libpcre3 libpcre3-dev libnl-dev libncurses-dev subversion python-twisted-web python-pymssql iw mc zip links w3m lynx arj dbview odt2txt gv catdvi djvulibre-bin python-boto python-tz pkg-config
+
 echo "[+] Baseline pentesting tools installed."
 
 # Remove unneeded statup items
@@ -56,27 +58,27 @@ echo "[+] Remove unneeded startup items..."
 update-rc.d -f gpsd remove
 update-rc.d -f tinyproxy remove
 update-rc.d -f ntp remove
-apt-get -y purge portmap
-apt-get -y autoremove gdm
+#apt-get -y purge portmap
+#apt-get -y autoremove gdm
 apt-get -y autoremove
 echo "[+] Unneeded startup items removed."
 
 # Install wireless pentesting tools
 echo "[+] Installing wireless pentesting tools..."
 aptitude -y install kismet
-cd src/aircrack-ng-1.1
+cd src/aircrack-ng-1.2-rc1
 chmod +x evalrev
 make install
 cd ../..
+airodump-ng-oui-update
 echo "[+] Wireless pentesting tools installed."
 
 # Install Metasploit -- Note this will require changing the default RAM allocation 
 echo "[+] Installing latest Metasploit Framework..."
 aptitude -y install ruby irb ri rubygems libruby ruby-dev libpcap-dev
 mkdir /opt/metasploit
-cd /opt/metasploit
 wget http://downloads.metasploit.com/data/releases/framework-latest.tar.bz2
-tar jxvf framework-latest.tar.bz2
+tar jxvf framework-latest.tar.bz2 -C /opt/metasploit
 ln -sf /opt/metasploit/msf3/msf* /usr/local/bin/
 echo "[+] Latest Metasploit Framework installed."
 
@@ -93,7 +95,7 @@ echo "[+] Perl/Python tools installed in /pentest."
 
 # Install SET
 echo "[+] Installing latest SET framework to /pentest..."
-svn co http://svn.secmaniac.com/social_engineering_toolkit /pentest/set/
+git clone https://github.com/trustedsec/social-engineer-toolkit/ /pentest/set/
 cd src/pexpect-2.3/
 python setup.py install
 cd ../..
@@ -101,18 +103,25 @@ echo "[+] SET framework installed in /pentest."
 
 # Update motd to show Raspberry Pwn release
 cp src/motd.tail.raspberrypwn /etc/motd.tail
+# Update motd for pi user to show Raspberry Pwn release
+cp src/motd.tail.raspberrypwn /etc/motd
 
 # Install Exploit-DB
 echo "[+] Installing Exploit-DB to /pentest..."
-svn co svn://www.exploit-db.com/exploitdb /pentest/exploitdb/
+mkdir -p /pentest/exploitdb
+cd /pentest/exploitdb/
+wget  http://www.exploit-db.com/archive.tar.bz2
+tar -xjvf archive.tar.bz2 
 echo "[+] Exploit-DB installed in /pentest."
 
-echo "[+] Setting default RAM allocation"
-cp /boot/arm224_start.elf /boot/start.elf
+echo "[+] Setting default RAM allocation (disabled!)"
+echo "[!] If your RPi board only has 256MB ram please set split to"
+echo "    224/32 using raspi-config."
+#cp /boot/arm224_start.elf /boot/start.elf
 
 echo ""
 echo "---------------------------------------------------------------"
-echo "Raspberry Pwn Release 0.1 installed successfully!"
+echo "Raspberry Pwn Release 0.3 installed successfully!"
 echo "---------------------------------------------------------------"
 echo ""
 
